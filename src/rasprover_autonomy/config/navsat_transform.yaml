@@ -1,3 +1,8 @@
 navsat_transform_node:
   ros__parameters:
-    datum: [0.0, 0.0, 0.0, odom, base_link]
+    use_odometry_yaw: false       # use IMU yaw for GPS reference
+    wait_for_datum: true
+    datum: [37.7749, -122.4194, 0.0, odom, base_link]  # Example: [latitude, longitude, heading, world_frame, base_link_frame]
+    zero_altitude: true
+    yaw_offset: 0.0
+    broadcast_utm_transform: false
