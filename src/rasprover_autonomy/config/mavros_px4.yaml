@@ -1,0 +1,2 @@
+connection_url: serial:///dev/ttyACM0:57600
+gcs_url: udp://@0.0.0.0:14550

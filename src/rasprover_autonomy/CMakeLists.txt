@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.8)
+project(rasprover_autonomy)
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+add_executable(pure_pursuit_node src/pure_pursuit_node.cpp)
+ament_target_dependencies(pure_pursuit_node rclcpp)
+install(TARGETS pure_pursuit_node DESTINATION lib/${PROJECT_NAME})
+ament_package()
