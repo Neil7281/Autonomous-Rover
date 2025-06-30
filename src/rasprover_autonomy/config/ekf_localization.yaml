@@ -1,3 +1,0 @@
-ekf_localization_node:
-  ros__parameters:
-    frequency: 30.0
