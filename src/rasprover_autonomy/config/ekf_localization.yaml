@@ -1,0 +1,54 @@
+ekf_localization_node:
+  ros__parameters:
+    frequency: 30.0             # EKF prediction/update rate (Hz)
+    two_d_mode: true            # assume planar motion (ignore roll/pitch and z)
+    publish_tf: true            # publish TF transform (odom->base_link)
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: odom          # using odom as the world frame for continuous data
+
+    # Sensor inputs
+    odom0: /mavros/local_position/odom              # Odometry from Pixhawk (local ENU)
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, false,
+                   false, false, false]
+    # Use only the linear velocity (x, y) from Pixhawk odometry:contentReference[oaicite:17]{index=17}:contentReference[oaicite:18]{index=18}.
+    # We ignore position and orientation from Pixhawk, since we will incorporate GPS separately.
+    # (Pixhawk odom twist is in base_link frame: vx = forward speed, vy = lateral speed)
+
+    odom0_differential: false
+    odom0_relative: false
+
+    odom1: /odometry/gps                            # Odometry from navsat_transform (GPS)
+    odom1_config: [true,  true,  false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    # Use position X, Y from GPS (converted to odom frame):contentReference[oaicite:19]{index=19}.
+    # Z/GPS altitude is ignored (false) since we treat motion as planar.
+    # No velocities or orientation from this source.
+
+    odom1_differential: false
+    odom1_relative: true 
+    # 'relative: true' treats GPS position changes rather than absolute position, smoothing jumps:contentReference[oaicite:20]{index=20}.
+
+    imu0: /mavros/imu/data                          # IMU data from Pixhawk (orientation + angular velocity)
+    imu0_config: [false, false, false,
+                  false, false, true,
+                  false, false, false,
+                  false, false, true,
+                  true,  true,  false]
+    # Use yaw orientation (true) from IMU, and yaw angular velocity (true), and linear acceleration X, Y (true):contentReference[oaicite:21]{index=21}.
+    # Roll/pitch are false (handled by two_d_mode), as is vertical accel.
+    # This gives the filter an absolute heading reference (from magnetometer-compensated yaw) and short-term motion from IMU gyro/accel.
+
+    imu0_differential: false
+    imu0_relative: false
+    imu0_remove_gravitational_acceleration: true
+
+    # Process noise and measurement covariance settings would go here (omitted for brevity).
+    # ... e.g., process_noise_covariance, initial_estimate_covariance, and sensor relative covariances.
