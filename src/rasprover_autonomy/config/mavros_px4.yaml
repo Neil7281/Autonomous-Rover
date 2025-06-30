@@ -1,2 +1,17 @@
-connection_url: serial:///dev/ttyACM0:57600
-gcs_url: udp://@0.0.0.0:14550
+# MAVROS parameters for Pixhawk connection (to be loaded by launch file)
+connection_url: serial:///dev/ttyACM0:57600    # Pixhawk connection over USB serial (adjust as needed)
+# For telemetry via UART (e.g., Pi UART to Pixhawk TELEM2 at 921600 baud), use:
+# connection_url: serial:///dev/ttyAMA0:921600
+
+gcs_url: udp://@0.0.0.0:14550                  # Forward MAVLink to GCS on UDP port 14550 (QGroundControl listens on this by default):contentReference[oaicite:34]{index=34}
+target_system: 1
+target_component: 1
+# The above IDs (1) are default for PX4. Adjust if Pixhawk has different system ID.
+fcu_protocol: v2.0
+
+# Frame convention: ENU (ROS) <-> NED (PX4) is handled internally by MAVROS:contentReference[oaicite:35]{index=35}.
+# We ensure frame_id's match our robot frames:
+frame_id: "map"                 # or "odom"; MAVROS will output poses in ENU with this frame_id
+# The frame for IMU orientation might be set to base_link by mavros by default.
+
+# Plugin activations can be configured (we use default plugin list for PX4, which includes imu, gps, local_position, setpoint, etc.)
