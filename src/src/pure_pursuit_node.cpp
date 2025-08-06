@@ -70,4 +70,72 @@ private:
     double robot_x = msg->pose.pose.position.x;
     double robot_y = msg->pose.pose.position.y;
 
-    // Qua
+    // Quaternion to yaw
+    double qx = msg->pose.pose.orientation.x;
+    double qy = msg->pose.pose.orientation.y;
+    double qz = msg->pose.pose.orientation.z;
+    double qw = msg->pose.pose.orientation.w;
+    double siny_cosp = 2.0 * (qw * qz + qx * qy);
+    double cosy_cosp = 1.0 - 2.0 * (qy * qy + qz * qz);
+    double robot_yaw = std::atan2(siny_cosp, cosy_cosp);
+
+    // Select target waypoint
+    Waypoint target = waypoints_[current_wp_index_];
+    double dx = target.x - robot_x;
+    double dy = target.y - robot_y;
+    double distance_to_wp = std::sqrt(dx * dx + dy * dy);
+
+    if (distance_to_wp < lookahead_distance_) {
+      current_wp_index_++;
+      if (current_wp_index_ >= waypoints_.size()) {
+        RCLCPP_INFO(get_logger(), "Final waypoint reached.");
+        publishStop();
+        return;
+      }
+      target = waypoints_[current_wp_index_];
+      dx = target.x - robot_x;
+      dy = target.y - robot_y;
+      distance_to_wp = std::sqrt(dx * dx + dy * dy);
+    }
+
+    double target_angle = std::atan2(dy, dx);
+    double alpha = target_angle - robot_yaw;
+    while (alpha > M_PI) alpha -= 2 * M_PI;
+    while (alpha < -M_PI) alpha += 2 * M_PI;
+
+    double Ld = std::max(distance_to_wp, lookahead_distance_);
+    double curvature = 0.0;
+    if (Ld > 0.001) {
+      curvature = 2.0 * std::sin(alpha) / Ld;
+    }
+
+    double linear_vel = target_speed_;
+    double angular_vel = curvature * linear_vel;
+
+    geometry_msgs::msg::TwistStamped cmd;
+    cmd.header.stamp = this->get_clock()->now();
+    cmd.header.frame_id = "base_link";
+    cmd.twist.linear.x = linear_vel;
+    cmd.twist.angular.z = angular_vel;
+    cmd_pub_->publish(cmd);
+  }
+
+  void publishStop()
+  {
+    geometry_msgs::msg::TwistStamped cmd;
+    cmd.header.stamp = this->get_clock()->now();
+    cmd.header.frame_id = "base_link";
+    cmd.twist.linear.x = 0.0;
+    cmd.twist.angular.z = 0.0;
+    cmd_pub_->publish(cmd);
+  }
+};
+
+int main(int argc, char** argv)
+{
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<PurePursuitNode>();
+  rclcpp::spin(node);
+  rclcpp::shutdown();
+  return 0;
+}
